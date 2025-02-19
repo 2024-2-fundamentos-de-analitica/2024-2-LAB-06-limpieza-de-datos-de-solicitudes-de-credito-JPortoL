@@ -2,7 +2,7 @@
 Escriba el codigo que ejecute la accion solicitada en la pregunta.
 """
 
-
+import os
 def pregunta_01():
     """
     Realice la limpieza del archivo "files/input/solicitudes_de_credito.csv".
@@ -13,3 +13,38 @@ def pregunta_01():
     El archivo limpio debe escribirse en "files/output/solicitudes_de_credito.csv"
 
     """
+
+    import pandas as pd
+
+    df = pd.read_csv('files/input/solicitudes_de_credito.csv', delimiter=';', index_col=0)
+
+    # Limpieza de texto
+    df["sexo"] = df["sexo"].str.lower().str.strip()
+    df["tipo_de_emprendimiento"] = df["tipo_de_emprendimiento"].str.lower().str.strip()
+    df["idea_negocio"] = df["idea_negocio"].str.lower().str.replace(r"[_-]", " ", regex=True).str.strip()
+    df["barrio"] = df["barrio"].str.lower().str.replace(r"[_-]", " ", regex=True)
+    df["línea_credito"] = df["línea_credito"].str.lower().str.replace(r"[_-]", " ", regex=True).str.strip()
+
+    # Conversión de tipos de datos
+    df["estrato"] = pd.to_numeric(df["estrato"], errors="coerce")
+    df["comuna_ciudadano"] = pd.to_numeric(df["comuna_ciudadano"], errors="coerce")
+    df["fecha_de_beneficio"] = pd.to_datetime(
+        df["fecha_de_beneficio"], format="%d/%m/%Y", errors="coerce").combine_first(
+        pd.to_datetime(df["fecha_de_beneficio"], format="%Y/%m/%d", errors="coerce"))
+
+    # Limpieza de montos numéricos
+    df["monto_del_credito"] = df["monto_del_credito"].astype('str').str.replace(".00", "").str.replace(",", "").str.replace(".", "").str.replace("$", "").astype('int')
+
+    
+    # Eliminar registros duplicados y faltantes
+    df = df.drop_duplicates()
+    df = df.dropna()
+
+
+    # Guardar el archivo limpio
+    df.to_csv('files/output/solicitudes_de_credito.csv', index=False, sep=';')
+
+    return 
+
+if __name__ == "__main__":
+    pregunta_01()
